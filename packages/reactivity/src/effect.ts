@@ -285,10 +285,11 @@ export function trackEffect(
 const queueEffectSchedulers: EffectScheduler[] = []
 
 export function triggerEffects(
-  dep: Dep,
-  dirtyLevel: DirtyLevels,
-  debuggerEventExtraInfo?: DebuggerEventExtraInfo,
+  dep: Dep, // 依赖集合
+  dirtyLevel: DirtyLevels, // 脏级别
+  debuggerEventExtraInfo?: DebuggerEventExtraInfo, // 调试信息
 ) {
+  // 暂停调度，以避免重复触发或无序触发
   pauseScheduling()
   for (const effect of dep.keys()) {
     if (

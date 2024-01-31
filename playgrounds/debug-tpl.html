@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script src="../../packages/vue/dist/vue.global.js"></script>
+
+    <div id="app"></div>
+
+    <script>
+        const app = Vue.createApp({
+            template: `
+                <div>
+                </div>
+            `,
+
+            setup() {
+                const sources = Vue.ref([])
+
+                console.log(sources);
+
+                return {
+                    sources,
+                }
+            },
+        })
+
+        app.mount('#app')
+    </script>
+</body>
+</html>

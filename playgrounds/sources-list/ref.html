@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ref</title>
+</head>
+<body>
+    
+    <script src="../../packages/vue/dist/vue.global.js"></script>
+
+    <div id="app"></div>
+
+    <script>
+        const app = Vue.createApp({
+            template: `
+                <div>ref source</div>
+                <h1>{{ count }}</h1>
+                <button @click="count++">count++</button>
+                <button @click="count--">count--</button>
+            `,
+
+            setup() {
+                const count = Vue.ref(0);
+
+                console.log(count);
+                // console.log(shallowCount);
+
+                return {
+                    count
+                }
+            },
+        })
+
+        app.mount('#app')
+    </script>
+</body>
+</html>

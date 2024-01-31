@@ -18,8 +18,8 @@ module.exports = {
   },
   plugins: ['jest', 'import', '@typescript-eslint'],
   rules: {
-    'no-debugger': 'error',
-    'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
+    // 'no-debugger': 'error',
+    // 'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
     // most of the codebase are expected to be env agnostic
     'no-restricted-globals': ['error', ...DOMGlobals, ...NodeGlobals],
 

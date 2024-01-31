@@ -130,6 +130,7 @@ export const toHandlerKey = cacheStringFunction(<T extends string>(str: T) => {
 })
 
 // compare whether a value has changed, accounting for NaN.
+// 比较新旧值是否相等，如果是NaN，也会返回true
 export const hasChanged = (value: any, oldValue: any): boolean =>
   !Object.is(value, oldValue)
 

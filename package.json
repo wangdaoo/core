@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.js",
+    "dev-sm": "node scripts/dev.js --sourcemap",
     "build": "node scripts/build.js",
     "build-dts": "tsc -p tsconfig.build.json && rollup -c rollup.dts.config.js",
     "clean": "rimraf packages/*/dist temp .eslintcache",

@@ -44,16 +44,27 @@ type RefBase<T> = {
   value: T
 }
 
+/**
+ * trackRefValue 用于跟踪依赖
+ * @param ref
+ */
 export function trackRefValue(ref: RefBase<any>) {
+  // 只有在需要跟踪且当前有活跃的effect时，才会进行依赖收集
   if (shouldTrack && activeEffect) {
+    // 获取ref的原始值，去除响应式对象的包装
     ref = toRaw(ref)
+    // trackEffect 用于建立当前活跃的effect与ref之间的依赖关系
     trackEffect(
+      // 当前活跃的effect
       activeEffect,
+      // 获取或创建 ref 的依赖管理器 dep
       ref.dep ||
         (ref.dep = createDep(
           () => (ref.dep = undefined),
           ref instanceof ComputedRefImpl ? ref : undefined,
         )),
+
+      // 开发模式，提供额外调试信息
       __DEV__
         ? {
             target: ref,
@@ -65,14 +76,23 @@ export function trackRefValue(ref: RefBase<any>) {
   }
 }
 
+/**
+ * triggerRefValue 用于触发更新
+ * @param ref
+ * @param dirtyLevel
+ * @param newVal
+ */
 export function triggerRefValue(
   ref: RefBase<any>,
   dirtyLevel: DirtyLevels = DirtyLevels.Dirty,
   newVal?: any,
 ) {
+  // 获取ref的原始值，去除响应式对象的包装
   ref = toRaw(ref)
+  // 获取 ref 的依赖管理器
   const dep = ref.dep
   if (dep) {
+    // triggerEffects 用于出发所有依赖此 ref 的 effect 更新
     triggerEffects(
       dep,
       dirtyLevel,
@@ -149,36 +169,58 @@ function createRef(rawValue: unknown, shallow: boolean) {
   if (isRef(rawValue)) {
     return rawValue
   }
+  debugger
   return new RefImpl(rawValue, shallow)
 }
 
 class RefImpl<T> {
+  // 存储ref的值
   private _value: T
+  // 存储ref的原始值
   private _rawValue: T
 
+  // 这是一个依赖对象，用于收集依赖，当依赖发生变化时，触发更新
   public dep?: Dep = undefined
+  // 用于标识是否是一个ref对象
   public readonly __v_isRef = true
 
   constructor(
     value: T,
     public readonly __v_isShallow: boolean,
   ) {
+    // 使用__v_isShallow标识是否是一个浅层的ref
+    // 如果是浅层的ref，那么value就是原始值，否则就是一个响应式对象
     this._rawValue = __v_isShallow ? value : toRaw(value)
     this._value = __v_isShallow ? value : toReactive(value)
   }
 
+  // 获取ref的值
+  // 如果ref的值是一个响应式对象，那么会对这个响应式对象进行依赖追踪
   get value() {
+    debugger
     trackRefValue(this)
     return this._value
   }
 
+  // 设置ref的值
+  // 在设置值时，会根据条件决定是否需要转换值
   set value(newVal) {
+    debugger
+    // 确定是否可以直接使用newVal
+    // 取决于 __v_isShallow、newVal是否是一个浅层或只读的响应式对象
     const useDirectValue =
       this.__v_isShallow || isShallow(newVal) || isReadonly(newVal)
+
+    // 根据 useDirectValue 判断是否需要将 newVal 转换为原始值
     newVal = useDirectValue ? newVal : toRaw(newVal)
+
+    // 判断新值是否发生了变化
     if (hasChanged(newVal, this._rawValue)) {
+      // 如果发生了变化，那么就更新值
       this._rawValue = newVal
       this._value = useDirectValue ? newVal : toReactive(newVal)
+
+      // 触发更新
       triggerRefValue(this, DirtyLevels.Dirty, newVal)
     }
   }
