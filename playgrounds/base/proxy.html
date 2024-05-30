@@ -92,6 +92,32 @@
     console.log(Object.keys(proxy));
     // 控制台输出：Getting own keys
     // 输出：['name']
+
+    console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '--------')
+
+    // 惰性加载属性
+    const lazyHandler = {
+      get(target, key) {
+        console.log(target, key);
+        if (!(key in target)) {
+          target[key] = `Hello, ${key}`;
+          console.log('不存在', `${key}: ${target[key]}`, '添加至 target');
+        }
+
+        console.log('已存在', `${key}: ${target[key]}`);
+        return target[key];
+      },
+
+      ownKeys(target) {
+        return Reflect.ownKeys(target);
+      },
+    };
+
+    const lazyProxy = new Proxy({}, lazyHandler);
+
+    console.log(lazyProxy.world); // Hello, world
+    console.log(lazyProxy.world); // Hello, world
+    console.log(Object.keys(lazyProxy)); // ['world']
   </script>
 </body>
 </html>
