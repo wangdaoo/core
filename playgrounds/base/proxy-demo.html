@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>深度响应式、数据验证</title>
+</head>
+<body>
+  <script>
+    function createReactiveObject(target) {
+      // 只处理对象类型
+      if (typeof target !== 'object' || target === null) {
+        return target;
+      }
+
+      // 定义一个新的代理处理器
+      const handelr = {
+        get(target, key, receiver) {
+          console.log(`Getting ${key}`);
+          const res = Reflect.get(target, key, receiver)
+
+          // 对嵌套对象进行递归处理
+          return createReactiveObject(res);
+        },
+
+        set(target, key, value, receiver) {
+          if (key === 'age' && (typeof value !== 'number' || value <= 0)) {
+            throw new Error('Age 必须为 number 类型，且大于 0')
+          }
+          console.log(`Setting ${key} to ${value}`);
+
+          const oldValue = target[key];
+          const success = Reflect.set(target, key, value, receiver)
+          if (success && oldValue !== value) {
+            console.log(`属性 ${key} 已从 ${oldValue} 更新至 ${value}`);
+          }
+          return success;
+        },
+
+        deleteProperty(target, key) {
+          console.log(`Deleting ${key}`);
+          return Reflect.deleteProperty(target, key);
+        },
+
+        ownKeys(target) {
+          console.log('Getting own keys');
+          return Reflect.ownKeys(target);
+        }
+      }
+
+      // 创建代理对象
+      return new Proxy(target, handelr);
+    }
+
+    const nestedObj = {
+      name: 'Lynx',
+      age: 28,
+      address: {
+        city: 'HangZhou',
+        zip: {
+          code: 350000,
+          area: 'Xihu'
+        }
+      }
+    };
+
+    // 创建深度响应式对象
+    const reactiveObj = createReactiveObject(nestedObj);
+
+    console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '测试属性读取 ⬇️')
+    console.log('获取 name 属性 ->',reactiveObj.name);
+    // 控制台：Getting name
+    // 获取 name 属性 -> Lynx
+
+    console.log('获取 city 属性 ->',reactiveObj.address.city);
+    // Getting address
+    // Getting address
+    // 获取 city 属性 -> HangZhou
+
+    console.log('获取 code 属性 ->',reactiveObj.address.zip.code);
+    // Getting address
+    // Getting zip
+    // Getting code
+    // 获取 code 属性 -> 350000
+
+    console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '测试属性写入和验证 ⬇️')
+    reactiveObj.age = 30;
+    // Setting age to 30
+    // 属性 age 已从 28 更新至 30
+
+    try {
+      reactiveObj.age = -1;
+    } catch (error) {
+      console.error(error.message)
+      // Age 必须为 number 类型，且大于 0
+    }
+
+    console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '测试属性删除')
+    delete reactiveObj.age;
+    // Deleting age
+
+    console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '获取对象所有的建')
+    console.log(Object.keys(reactiveObj));
+    // ['name', 'address']
+  </script>
+</body>
+</html>
