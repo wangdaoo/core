@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reflect</title>
+</head>
+<body>
+  <script>
+    // const target = {};
+    // Object.preventExtensions(target); // 阻止对象扩展
+
+    // // 使用 Object.defineProperty
+    // // 如果 不使用 try...catch，会报错，导致后续代码无法执行
+    // // const res1 = Object.defineProperty(target, 'name', { value: 'Alice' });
+    // // console.log(res1);
+
+    // try {
+    //   const res1 = Object.defineProperty(target, 'name', { value: 'Alice' });
+    //   console.log(res1);
+    // } catch (e) {
+    //   console.error('Failed to define property using Object:', e.message);
+    // }
+
+    // // 使用 Reflect.defineProperty
+    // const res = Reflect.defineProperty(target, 'name', { value: 'Alice' });
+    // console.log(res);
+    // console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '-继续执行-')
+
+    const handler = {
+      get(target, prop, receiver) {
+        console.log(`Getting ${prop}`);
+        return Reflect.get(target, prop, receiver); // 使用 Reflect 确保默认行为
+      },
+      set(target, prop, value, receiver) {
+        console.log(`Setting ${prop} to ${value}`);
+        return Reflect.set(target, prop, value, receiver); // 使用 Reflect 确保默认行为
+      },
+      defineProperty(target, prop, descriptor) {
+        console.log(`Defining property ${prop}`);
+        return Reflect.defineProperty(target, prop, descriptor); // 使用 Reflect 确保默认行为
+      }
+    };
+
+    const target = { name: 'Alice' };
+    const proxy = new Proxy(target, handler);
+
+    console.log(proxy.name); // 输出: Getting name, Alice
+    proxy.name = 'Bob';      // 输出: Setting name to Bob
+    console.log(proxy.name); // 输出: Getting name, Bob
+
+    Reflect.defineProperty(proxy, 'age', { value: 25, configurable: true });
+    console.log(proxy.age);  // 输出: Getting age, 25
+
+  </script>
+</body>
+</html>

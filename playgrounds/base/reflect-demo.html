@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>观察者模式</title>
+</head>
+<body>
+  <script>
+    class Observer {
+      constructor(target) {
+        // 初始化订阅者集合，用于存储所有订阅者
+        this.subscribers = new Set();
+        // 调用 observe 方法，将目标对象 target 变为代理对象，并将其赋值给 this.target
+        this.target = Observer.observe(target, this);
+      }
+
+      /** 
+       * 观察对象
+       * @param {Object} target
+       * @description 使用 Proxy 对象实现观察者模式
+       */
+      static observe(target, observerInstance) {
+        // 只处理对象类型
+        if (typeof target !== 'object' || target === null) {
+          return target;
+        }
+
+        const handler = {
+          get(target, key, receiver) {
+            const res = Reflect.get(target, key, receiver);
+            // get 捕获器中递归调用 observe 方法，确保嵌套对象也能被代理
+            return Observer.observe(res, observerInstance);
+          },
+
+          // set 捕获器中，当属性值发生变化时，通知所有订阅者
+          set(target, key, value, receiver) {
+            const oldValue = target[key];
+            const success = Reflect.set(target, key, value, receiver);
+            if (success && oldValue !== value) {
+              observerInstance.notify(key);
+            }
+            return success;
+          }
+        };
+
+        return new Proxy(target, handler);
+      }
+
+      /** 
+       * 订阅
+       * @param {Object} subscriber
+       * @description 订阅者需要实现 update 方法
+       */
+      subscribe(subscriber) {
+        this.subscribers.add(subscriber);
+      }
+
+      /** 
+       * 取消订阅
+       * @param {Object} subscriber
+       */
+      unsubscribe(subscriber) {
+        this.subscribers.delete(subscriber);
+      }
+
+      /** 
+       * 通知所有订阅者
+       * @param {string} key 
+       * @description 通知所有订阅者，有属性 key 发生了变化
+       */
+      notify(key) {
+        this.subscribers.forEach(subscriber => {
+          subscriber.update(key);
+        });
+      }
+    }
+
+    class Subscriber {
+      constructor(name) {
+        this.name = name;
+      }
+
+      update(key) {
+        console.log(`${this.name} 收到通知，属性 ${key} 发生了变化`);
+      }
+    }
+
+    const observer = new Observer({ name: 'Alice', age: 25 });
+    const subscriber1 = new Subscriber('Subscriber1');
+    const subscriber2 = new Subscriber('Subscriber2');
+
+    observer.subscribe(subscriber1);
+    observer.subscribe(subscriber2);
+    
+    // subscriber1 和 subscriber2 都会收到通知
+    observer.target.name = 'Bob';
+    observer.target.age = 28;
+
+    observer.target.job = 'Front-end Developer';
+
+    // 取消订阅 subscriber2
+    observer.unsubscribe(subscriber2);
+
+    // subscriber2 不会收到通知
+    observer.target.name = 'Cathy';
+    observer.target.age = 30;
+  </script>
+</body>
+</html>
