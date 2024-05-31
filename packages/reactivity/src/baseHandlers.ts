@@ -43,10 +43,25 @@ const builtInSymbols = new Set(
     .filter(isSymbol),
 )
 
+/**
+ * // NICE: 数组的方法
+ */
 const arrayInstrumentations = /*#__PURE__*/ createArrayInstrumentations()
 
 function createArrayInstrumentations() {
   const instrumentations: Record<string, Function> = {}
+  /**
+   * // NICE: 身份敏感的数组方法，用于考虑可能的反应值
+   * 处理逻辑：
+   * 1. toRaw：将响应式数组转换为原始数组，确保不会因为代理对象影响方法的执行
+   * 2. 依赖追踪：使用 track 函数为数据每个索引值添加依赖追踪，以便在数据变化时能够触发更新
+   * 3. 方法调用：首先使用原始参数调用原始数组的方法
+   * 4. 回退处理：如果方法返回 -1 或 false，表示未找到元素，则使用 toRaw 转换参数再次调用方法
+   *    这是因为数组中的元素可能是响应式的，需要转换为原始值才能正确比较
+   *    例如：arr.indexOf(reactive(1))，如果 reactive(1) 未找到，则再次调用 arr.indexOf(1)
+   * // NICE: End
+   */
+
   // instrument identity-sensitive Array methods to account for possible reactive
   // values
   ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
@@ -65,6 +80,19 @@ function createArrayInstrumentations() {
       }
     }
   })
+
+  /**
+   * // NICE: 长度变化的变异方法
+   * 处理逻辑：
+   * 1. 暂停追踪和调度：
+   *  - pauseTracking：暂停依赖追踪，避免在变更操作中出发不必要的依赖追踪
+   *  - pauseScheduling：暂停调度，避免在变更操作中触发不必要的更新
+   * 2. 方法调用：使用 toRaw 将响应式数组转换为原始数组，然后调用原始数组的方法
+   * 3. 恢复追踪和调度：
+   *  - resetScheduling：恢复调度
+   *  - resetTracking：恢复依赖追踪
+   * // NICE: End
+   */
   // instrument length-altering mutation methods to avoid length being tracked
   // which leads to infinite loops in some cases (#2137)
   ;(['push', 'pop', 'shift', 'unshift', 'splice'] as const).forEach(key => {
