@@ -239,6 +239,14 @@ export function shallowReadonly<T extends object>(target: T): Readonly<T> {
   )
 }
 
+// NICE: 这是实际代理对象的核心函数，它会根据传入的参数创建一个代理对象
+/**
+ * @param target - 目标对象
+ * @param isReadonly - 是否为只读
+ * @param baseHandlers - 基础代理处理器
+ * @param collectionHandlers - 集合代理处理器
+ * @param proxyMap - 代理对象缓存
+ */
 function createReactiveObject(
   target: Target,
   isReadonly: boolean,
@@ -246,6 +254,7 @@ function createReactiveObject(
   collectionHandlers: ProxyHandler<any>,
   proxyMap: WeakMap<Target, any>,
 ) {
+  // NICE: 如果目标对象不是对象，则直接返回。且在开发环境下会打印警告
   if (!isObject(target)) {
     if (__DEV__) {
       warn(
@@ -256,6 +265,13 @@ function createReactiveObject(
     }
     return target
   }
+
+  /**
+   * // NICE: 重复代理检查
+   * 检查对象是否已经被代理过。
+   * 如果目标对象包含 ReactiveFlags.RAW 属性
+   * 并且（在只读模式下）对象不是一个响应式对象，则直接返回目标对象
+   */
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
   if (
@@ -264,20 +280,38 @@ function createReactiveObject(
   ) {
     return target
   }
+
+  /**
+   * // NICE: 缓存检查
+   * 查看是否已经存在该目标对象的代理。如果存在，直接返回缓存的代理对象
+   * 这一步可以避免重复创建代理对象，提高性能
+   */
   // target already has corresponding Proxy
   const existingProxy = proxyMap.get(target)
   if (existingProxy) {
     return existingProxy
   }
+
+  /**
+   * // NICE: 获取目标对象类型
+   * 确定目标对象的类型，如果目标类型无效，直接返回目标对象
+   */
   // only specific value types can be observed.
   const targetType = getTargetType(target)
   if (targetType === TargetType.INVALID) {
     return target
   }
+
+  /**
+   * // NICE: 选择代理处理器
+   * 使用不同的代理处理器来处理不同类型的目标对象
+   */
   const proxy = new Proxy(
     target,
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers,
   )
+
+  // NICE: 缓存代理对象
   proxyMap.set(target, proxy)
   return proxy
 }
