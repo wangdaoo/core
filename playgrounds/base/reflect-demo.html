@@ -47,7 +47,7 @@
         return new Proxy(target, handler);
       }
 
-      /** 
+      /**
        * 订阅
        * @param {Object} subscriber
        * @description 订阅者需要实现 update 方法
@@ -87,8 +87,23 @@
     }
 
     const observer = new Observer({ name: 'Alice', age: 25 });
-    const subscriber1 = new Subscriber('Subscriber1');
-    const subscriber2 = new Subscriber('Subscriber2');
+
+    const subscriber1 = {
+      update(key) {
+        console.log(`${this.name} 收到通知，属性 ${key} 发生了变化`);
+      },
+      name: 'Subscriber1'
+    }
+
+    const subscriber2 = {
+      update(key) {
+        console.log(`${this.name} 收到通知，属性 ${key} 发生了变化`);
+      },
+      name: 'Subscriber2'
+    }
+
+    // const subscriber1 = new Subscriber('Subscriber1');
+    // const subscriber2 = new Subscriber('Subscriber2');
 
     observer.subscribe(subscriber1);
     observer.subscribe(subscriber2);
