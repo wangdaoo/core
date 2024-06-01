@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reactive</title>
+</head>
+<body>
+    
+  <script src="../../packages/vue/dist/vue.global.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+    const app = Vue.createApp({
+      template: `
+        <div>ref source</div>
+        <h1>{{ obj.count }}</h1>
+        <button @click="obj.count++">count++</button>
+        <button @click="obj.count--">count--</button>
+      `,
+
+      setup() {
+        const objRaw = { count: 0 }
+        objRaw['__v_skip'] = true
+        const obj = Vue.reactive(objRaw)
+        console.log(obj);
+
+        // const obj2 = Vue.reactive({ name: 22 })
+        // console.log(obj2);
+
+        // console.log(Vue.isReactive(obj)); // true
+        // console.log(Vue.isReadonly(obj)); // false
+
+        // const o = Vue.readonly({ name: 'readonly' })
+        // console.log(o);
+
+        return {
+          obj
+        }
+      },
+    })
+
+    app.mount('#app')
+  </script>
+</body>
+</html>
