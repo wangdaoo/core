@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ref</title>
+  <script src="../../dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const { ref, reactive, effect, createApp } = Vue;
+
+    const nestedRef = ref({
+      level1: {
+        level2: {
+          value: 'initial'
+        }
+      }
+    });
+    const nestedReactive = reactive({
+      level1: {
+        level2: {
+          value: 'initial'
+        }
+      }
+    });
+
+    // 定义副作用函数
+    effect(() => {
+      console.log('nestedRef', nestedRef);
+      console.log('nestedRef.value', nestedRef.value);
+      console.log('Nested value ----> :', nestedRef.value.level1.level2.value);
+      console.log('nestedReactive', nestedReactive);
+    });
+
+    // 修改嵌套对象中的值
+    nestedRef.value.level1.level2.value = 'updated'; // 不会触发副作用函数重新运行
+
+
+    createApp({
+      setup() {
+        return { nestedRef }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
