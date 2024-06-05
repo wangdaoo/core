@@ -26,79 +26,86 @@ export type DebuggerEventExtraInfo = {
 export let activeEffect: ReactiveEffect | undefined
 
 export class ReactiveEffect<T = any> {
-  active = true
-  deps: Dep[] = []
+  active = true // 是否激活
+  deps: Dep[] = [] // 依赖集合
 
   /**
    * Can be attached after creation
    * @internal
    */
-  computed?: ComputedRefImpl<T>
+  computed?: ComputedRefImpl<T> // 计算属性
   /**
    * @internal
    */
-  allowRecurse?: boolean
+  allowRecurse?: boolean // 是否允许递归
 
-  onStop?: () => void
+  onStop?: () => void // 停止回调
   // dev only
-  onTrack?: (event: DebuggerEvent) => void
+  onTrack?: (event: DebuggerEvent) => void // 跟踪回调，仅在开发环境下
   // dev only
-  onTrigger?: (event: DebuggerEvent) => void
+  onTrigger?: (event: DebuggerEvent) => void // 触发回调，仅在开发环境下
 
   /**
    * @internal
    */
-  _dirtyLevel = DirtyLevels.Dirty
+  _dirtyLevel = DirtyLevels.Dirty // 脏级别
   /**
    * @internal
    */
-  _trackId = 0
+  _trackId = 0 // 跟踪 ID
   /**
    * @internal
    */
-  _runnings = 0
+  _runnings = 0 // 运行次数
   /**
    * @internal
    */
-  _shouldSchedule = false
+  _shouldSchedule = false // 是否应该调度
   /**
    * @internal
    */
-  _depsLength = 0
+  _depsLength = 0 // 依赖长度
 
   constructor(
-    public fn: () => T,
-    public trigger: () => void,
-    public scheduler?: EffectScheduler,
-    scope?: EffectScope,
+    public fn: () => T, // 副作用函数
+    public trigger: () => void, // 触发函数
+    public scheduler?: EffectScheduler, // 调度器
+    scope?: EffectScope, // 作用域
   ) {
-    recordEffectScope(this, scope)
+    recordEffectScope(this, scope) // 记录作用域
   }
 
+  // 是否脏
   public get dirty() {
+    // 脏级别为 MaybeDirty_ComputedSideEffect 或 MaybeDirty 时，会触发计算属性，以便获取最新值
     if (
       this._dirtyLevel === DirtyLevels.MaybeDirty_ComputedSideEffect ||
       this._dirtyLevel === DirtyLevels.MaybeDirty
     ) {
       this._dirtyLevel = DirtyLevels.QueryingDirty
+      // 暂停跟踪
       pauseTracking()
       for (let i = 0; i < this._depsLength; i++) {
         const dep = this.deps[i]
         if (dep.computed) {
+          // 触发计算属性
           triggerComputed(dep.computed)
           if (this._dirtyLevel >= DirtyLevels.Dirty) {
             break
           }
         }
       }
+      // 重置脏级别
       if (this._dirtyLevel === DirtyLevels.QueryingDirty) {
         this._dirtyLevel = DirtyLevels.NotDirty
       }
+      // 重置跟踪
       resetTracking()
     }
     return this._dirtyLevel >= DirtyLevels.Dirty
   }
 
+  // 设置脏
   public set dirty(v) {
     this._dirtyLevel = v ? DirtyLevels.Dirty : DirtyLevels.NotDirty
   }
@@ -224,15 +231,21 @@ export function stop(runner: ReactiveEffectRunner) {
   runner.effect.stop()
 }
 
+// NICE: 当前执行的 effect 是否需要收集
 export let shouldTrack = true
+// 暂停调度栈
 export let pauseScheduleStack = 0
 
+// 调用链栈，用来处理嵌套的 effect 调用情况
+// 记录这个链上的 effect 是否需要收集依赖
 const trackStack: boolean[] = []
 
 /**
  * Temporarily pauses tracking.
  */
+// 暂停依赖收集
 export function pauseTracking() {
+  // 将当前的 shouldTrack 值保存到栈中
   trackStack.push(shouldTrack)
   shouldTrack = false
 }
@@ -240,6 +253,7 @@ export function pauseTracking() {
 /**
  * Re-enables effect tracking (if it was paused).
  */
+// 启用依赖收集，暂时没有具体的应用场景
 export function enableTracking() {
   trackStack.push(shouldTrack)
   shouldTrack = true
@@ -248,8 +262,12 @@ export function enableTracking() {
 /**
  * Resets the previous global effect tracking state.
  */
+// 重置依赖收集
 export function resetTracking() {
+  // 弹出栈顶的 shouldTrack 值，标识当前的 shouldTrack 值已经失效，需要恢复到上一个状态
   const last = trackStack.pop()
+
+  // 如果 last 为 undefined，说明没有调用过 pauseTracking，此时 shouldTrack 应该为 true
   shouldTrack = last === undefined ? true : last
 }
 

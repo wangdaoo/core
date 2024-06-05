@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track 依赖收集</title>
+  <script src="../../dist/vue.global.js"></script>
+</head>
+<body>
+  <div>
+    <div id="app">
+      <h1>{{ obj.count }}</h1>
+      <button @click="obj.count++">count++</button>
+      <button @click="obj.count--">count--</button>
+      <hr>
+      <h1>{{ refVal }}</h1>
+      <button @click="refVal++">refVal++</button>
+      <button @click="refVal--">refVal--</button>
+    </div>
+  </div>
+
+  <script>
+    const { reactive, createApp, effect, ref, scheduler } = Vue;
+
+    const obj = reactive({ count: 1 });
+    console.log('obj', obj);
+    // console.log(obj.count);
+
+    const refVal = ref(0);
+    console.log('refVal', refVal);
+
+    const runner = effect(() => {
+      console.log('obj.count:', obj.count);
+      // console.log('refVal:', refVal.value);
+
+      // refVal.value = obj.count;
+    }, {
+      // lazy: true,
+      scheduler() {
+        console.log('scheduler');
+        runner();
+        refVal.value = obj.count;
+      },
+      onTrack(event) {
+        console.log('onTrack', event);
+      },
+      onTrigger(event) {
+        console.log('onTrigger', event);
+      },
+      onStop: () => {
+        console.log(`%c%s`, 'color: #4CAF50; font-weight: bold', '---stop---')
+      }
+    });
+
+    // setTimeout(() => {
+    //   runner.effect.stop();
+    // }, 2000);
+
+    createApp({
+      setup() {
+        return { obj, refVal };
+      }
+    }).mount('#app');
+
+    // 依赖收集
+    // 1. obj.count 会收集到 obj
+    // 2. obj.count++ 会触发 obj.count 的 set，从而触发 obj 的 trigger
+    // 3. obj.count-- 会触发 obj.count 的 set，从而触发 obj 的 trigger
+  </script>
+</body>
+</html>

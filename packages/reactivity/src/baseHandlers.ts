@@ -127,6 +127,10 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
   ) {}
 
   get(target: Target, key: string | symbol, receiver: object) {
+    // console.log(`%c⧭`, 'color: #9E9E9E; font-weight: bold', 'BaseReactiveHandler.get');
+    // console.log('target', target);
+    // console.log('key', key);
+    // console.log('receiver', receiver);
     const isReadonly = this._isReadonly,
       isShallow = this._isShallow
 
@@ -172,8 +176,11 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
           ).get(target) ||
         // receiver is not the reactive proxy, but has the same prototype
         // this means the reciever is a user proxy of the reactive proxy
+        // NICE: 如果 receiver 不是响应式代理，但具有相同的原型
+        // 这意味着 receiver 是响应式代理的用户代理
         Object.getPrototypeOf(target) === Object.getPrototypeOf(receiver)
       ) {
+        // console.log('此时的 target', target);
         return target
       }
       // early return undefined

@@ -13,7 +13,7 @@
     <button @click="obj.count++">count++</button>
     <button @click="obj.count--">count--</button>
 
-    <div>shallowReactive source</div>
+    <!-- <div>shallowReactive source</div>
     <h1>{{ objShallow.count }}</h1>
     <button @click="objShallow.count++">count++</button>
     <button @click="objShallow.count--">count--</button>
@@ -21,7 +21,7 @@
     <div>shallowReactive child source</div>
     <h1>{{ objShallow.child.count }}</h1>
     <button @click="objShallow.child.count++">count++</button>
-    <button @click="objShallow.child.count--">count--</button>
+    <button @click="objShallow.child.count--">count--</button> -->
   </div>
 
   <script>
@@ -35,28 +35,28 @@
 
     const obj = reactive(objRaw)
 
-    console.log(isReactive(obj)) // true;
+    // console.log(isReactive(obj)) // true;
 
-    // 将原始对象转换为只读对象
-    // const ro = readonly(objRaw)
-    // console.log(isReactive(ro)) // false;
+    // // 将原始对象转换为只读对象
+    // // const ro = readonly(objRaw)
+    // // console.log(isReactive(ro)) // false;
 
-    const objShallow = shallowReactive({
-      count: 0,
-      child: {
-        count: 0
-      }
-    })
+    // const objShallow = shallowReactive({
+    //   count: 0,
+    //   child: {
+    //     count: 0
+    //   }
+    // })
 
-    console.log(isReactive(objShallow)) // true;
+    // console.log(isReactive(objShallow)) // true;
 
-    const rawObj = reactive({ count: 1 });
-    console.log(obj['__v_raw'] === rawObj) // false;
-    console.log(toRaw(obj) === obj['__v_raw']) // true
+    // const rawObj = reactive({ count: 1 });
+    // console.log(obj['__v_raw'] === rawObj) // false;
+    // console.log(toRaw(obj) === obj['__v_raw']) // true
 
     createApp({
       setup() {
-        return { obj, objShallow }
+        return { obj }
       }
     }).mount('#app')
   </script>

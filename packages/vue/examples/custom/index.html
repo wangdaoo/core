@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Reactive</title>
+  <script src="./reactive.js"></script>
+</head>
+<body>
+  <script>
+    const state = reactive({
+      count: 0
+    })
+
+    // console.log(state.count);
+    // state.count++;
+    // console.log(state.count);
+
+    document.body.innerHTML = `
+      <h1>${state.count}</h1>
+      <button onclick="state.count++">Increment</button>
+    `
+
+    // effect(() => {
+    //   console.log(state.count)
+
+    //   document.body.innerHTML = `
+    //     <h1>${state.count}</h1>
+    //     <button onclick="state.count++">Increment</button>
+    //   `
+    // });
+
+    state.count++;
+  </script>
+</body>
+</html>

@@ -31,15 +31,19 @@ export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
  * @param key - Identifier of the reactive property to track.
  */
 export function track(target: object, type: TrackOpTypes, key: unknown) {
+  // debugger
   if (shouldTrack && activeEffect) {
+    //  NICE: 获取目标对象的依赖映射
     let depsMap = targetMap.get(target)
     if (!depsMap) {
       targetMap.set(target, (depsMap = new Map()))
     }
+    // NICE: 获取属性键的依赖集合
     let dep = depsMap.get(key)
     if (!dep) {
       depsMap.set(key, (dep = createDep(() => depsMap!.delete(key))))
     }
+    // NICE: 将当前活动的 effect 添加到依赖集合中
     trackEffect(
       activeEffect,
       dep,
