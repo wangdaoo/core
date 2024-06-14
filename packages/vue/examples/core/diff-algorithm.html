@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diff Algorithm Demo</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        // 创建虚拟 DOM 节点
+        function createVNode(tag, props, children) {
+            return { tag, props, children };
+        }
+
+        // 渲染虚拟 DOM 为真实 DOM
+        function render(vnode, container) {
+            const el = document.createElement(vnode.tag);
+            for (const key in vnode.props) {
+                el.setAttribute(key, vnode.props[key]);
+            }
+            vnode.children.forEach(child => {
+                if (typeof child === 'string') {
+                    el.appendChild(document.createTextNode(child));
+                } else {
+                    render(child, el);
+                }
+            });
+            container.appendChild(el);
+        }
+
+        // 简单的 Diff 算法实现
+        function diff(n1, n2) {
+            if (n1.tag !== n2.tag) {
+              return { type: 'REPLACE', newVNode: n2 };
+            }
+            const patch = { type: 'UPDATE', props: [], children: [] };
+            for (const key in n2.props) {
+                if (n1.props[key] !== n2.props[key]) {
+                    patch.props.push({ key, value: n2.props[key] });
+                }
+            }
+            const n1Children = n1.children || [];
+            const n2Children = n2.children || [];
+            patch.children = n2Children.map((child, i) => diff(n1Children[i], child));
+            return patch;
+        }
+
+        // 应用 Patch 更新 DOM
+        function applyPatch(dom, patch) {
+          switch (patch.type) {
+            case 'CREATE': {
+              const newEl = document.createElement(patch.newVNode.tag);
+              for (const key in patch.newVNode.props) {
+                newEl.setAttribute(key, patch.newVNode.props[key]);
+              }
+              patch.newVNode.children.forEach(child => {
+                if (typeof child === 'string') {
+                  newEl.appendChild(document.createTextNode(child));
+                } else {
+                  render(child, newEl);
+                }
+              });
+              dom.appendChild(newEl);
+              break;
+            }
+            case 'REMOVE':
+              dom.remove();
+              break;
+            case 'REPLACE': {
+              const newEl = document.createElement(patch.newVNode.tag);
+              for (const key in patch.newVNode.props) {
+                newEl.setAttribute(key, patch.newVNode.props[key]);
+              }
+              patch.newVNode.children.forEach(child => {
+                if (typeof child === 'string') {
+                  newEl.appendChild(document.createTextNode(child));
+                } else {
+                  render(child, newEl);
+                }
+              });
+              dom.replaceWith(newEl);
+              break;
+            }
+            case 'UPDATE': {
+              patch.props.forEach(prop => {
+                  dom.setAttribute(prop.key, prop.value);
+              });
+              patch.children.forEach((childPatch, i) => {
+                  applyPatch(dom.childNodes[i], childPatch);
+              });
+              break;
+            }
+          }
+        }
+
+        // 初始虚拟 DOM
+        const oldVNode = createVNode('div', { id: 'app' }, [
+          createVNode('h1', {}, ['Hello, World!']),
+          createVNode('button', { onClick: 'alert("Clicked")' }, ['Click me'])
+        ]);
+
+        // 更新后的虚拟 DOM
+        const newVNode = createVNode('div', { id: 'app' }, [
+          createVNode('h2', {}, ['Hello, Vue 3!']),
+          createVNode('button', { onClick: 'alert("Clicked")' }, ['Click me'])
+        ]);
+
+        // 渲染初始虚拟 DOM
+        render(oldVNode, document.getElementById('app'));
+
+        // 计算差异并更新 DOM
+        const patches = diff(oldVNode, newVNode);
+        console.log(patches);
+        applyPatch(document.getElementById('app').firstChild, patches);
+    </script>
+</body>
+</html>

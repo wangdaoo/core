@@ -368,17 +368,20 @@ function baseCreateRenderer(
     slotScopeIds = null,
     optimized = __DEV__ && isHmrUpdating ? false : !!n2.dynamicChildren,
   ) => {
+    // NICE: 如果新旧节点相同，直接返回
     if (n1 === n2) {
       return
     }
 
     // patching & not same type, unmount old tree
+    // NICE: 如果新旧节点不同，且类型不同，卸载旧节点
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
       n1 = null
     }
 
+    // 如果新节点的 patchFlag 是 BAIL，取消优化
     if (n2.patchFlag === PatchFlags.BAIL) {
       optimized = false
       n2.dynamicChildren = null
@@ -394,8 +397,10 @@ function baseCreateRenderer(
         break
       case Static:
         if (n1 == null) {
+          // NICE: 挂载静态节点
           mountStaticNode(n2, container, anchor, namespace)
         } else if (__DEV__) {
+          // NICE: 开发环境下，更新静态节点
           patchStaticNode(n1, n2, container, namespace)
         }
         break
@@ -474,6 +479,13 @@ function baseCreateRenderer(
     }
   }
 
+  /**
+   * // NICE: 文本节点处理
+   * @param n1 旧节点
+   * @param n2 新节点
+   * @param container 容器
+   * @param anchor 锚点
+   */
   const processText: ProcessTextOrCommentFn = (n1, n2, container, anchor) => {
     if (n1 == null) {
       hostInsert(
@@ -489,6 +501,9 @@ function baseCreateRenderer(
     }
   }
 
+  /**
+   * // NICE: 注释节点处理
+   */
   const processCommentNode: ProcessTextOrCommentFn = (
     n1,
     n2,
@@ -496,6 +511,7 @@ function baseCreateRenderer(
     anchor,
   ) => {
     if (n1 == null) {
+      // NICE: 新节点没有旧节点，直接插入
       hostInsert(
         (n2.el = hostCreateComment((n2.children as string) || '')),
         container,
@@ -576,6 +592,7 @@ function baseCreateRenderer(
     hostRemove(anchor!)
   }
 
+  // NICE: 处理元素节点
   const processElement = (
     n1: VNode | null,
     n2: VNode,
@@ -1045,6 +1062,7 @@ function baseCreateRenderer(
     }
   }
 
+  // NICE: 处理片段节点
   const processFragment = (
     n1: VNode | null,
     n2: VNode,
@@ -1152,6 +1170,7 @@ function baseCreateRenderer(
     }
   }
 
+  // NICE: 处理组件节点
   const processComponent = (
     n1: VNode | null,
     n2: VNode,

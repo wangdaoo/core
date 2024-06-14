@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Component</title>
+  <script src="../../dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const { createApp } = Vue;
+
+    const Demo = {
+      template: `
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+      `,
+      data() {
+        return {
+          title: 'Hello, Vue 3!',
+          message: 'This is a simple Vue 3 component.'
+        };
+      }
+    };
+
+    const app = createApp({
+      components: {
+        Demo
+      },
+      template: `<Demo />`
+    }).mount('#app');
+
+  </script>
+</body>
+</html>
