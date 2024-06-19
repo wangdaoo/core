@@ -9,20 +9,30 @@
 <body>
   <div id="app"></div>
   <script>
-    const { createApp } = Vue;
+    const { createApp, mounted } = Vue;
 
     const Demo = {
       template: `
         <h1>{{ title }}</h1>
         <p>{{ message }}</p>
+        <h1>这是静态节点</h1>
       `,
       data() {
         return {
           title: 'Hello, Vue 3!',
           message: 'This is a simple Vue 3 component.'
         };
+      },
+
+      mounted() {
+        setTimeout(() => {
+          this.title = 'Hello, Vue 3.2!';
+        }, 2000);
       }
     };
+
+
+    
 
     const app = createApp({
       components: {

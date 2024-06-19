@@ -1016,6 +1016,7 @@ function emitError(code: ErrorCodes, index: number, message?: string) {
 }
 
 function reset() {
+  // 重置词法分析器
   tokenizer.reset()
   currentOpenTag = null
   currentProp = null
@@ -1027,9 +1028,12 @@ function reset() {
 
 export function baseParse(input: string, options?: ParserOptions): RootNode {
   reset()
+  // 将传入的模板字符串赋值给currentInput
   currentInput = input
+  // 将默认的解析选项扩展为currentOptions
   currentOptions = extend({}, defaultParserOptions)
 
+  // 合并传入的解析选项，确保用户可以自定义解析行为
   if (options) {
     let key: keyof ParserOptions
     for (key in options) {
@@ -1053,6 +1057,8 @@ export function baseParse(input: string, options?: ParserOptions): RootNode {
     }
   }
 
+  // 设置词法分析器的模式
+  // 可以是 HTML、SFC(单文件组件) 或者基础模式
   tokenizer.mode =
     currentOptions.parseMode === 'html'
       ? ParseMode.HTML
@@ -1060,19 +1066,27 @@ export function baseParse(input: string, options?: ParserOptions): RootNode {
         ? ParseMode.SFC
         : ParseMode.BASE
 
+  // 设置词法分析器的命名空间
+  // 默认是 HTML，也可以是 SVG 或 MathML
   tokenizer.inXML =
     currentOptions.ns === Namespaces.SVG ||
     currentOptions.ns === Namespaces.MATH_ML
 
+  // 设置定界符：默认是 {{ 和 }}
+  // 如果提供了 delimiters 选项，则使用提供的定界符
   const delimiters = options && options.delimiters
   if (delimiters) {
     tokenizer.delimiterOpen = toCharCodes(delimiters[0])
     tokenizer.delimiterClose = toCharCodes(delimiters[1])
   }
 
+  // 创建根节点：调用 createRoot 函数创建一个根节点，并将其赋值给 currentRoot
   const root = (currentRoot = createRoot([], input))
+  // 调用词法分析器的 parse 方法，传入当前的模板字符串，这一步会生成初步的 AST
   tokenizer.parse(currentInput)
+  // 设置位置信息：设置根节点的位置信息，开始位置是 0，结束位置是当前模板字符串的长度
   root.loc = getLoc(0, input.length)
+  // 压缩空白字符：调用 condenseWhitespace 函数，将 AST 中的空白字符进行压缩
   root.children = condenseWhitespace(root.children)
   currentRoot = null
   return root

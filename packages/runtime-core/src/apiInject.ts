@@ -15,6 +15,10 @@ export function provide<T, K = InjectionKey<T> | string | number>(
       warn(`provide() can only be used inside setup().`)
     }
   } else {
+    // NICE:
+    // currentInstance - 当前组件实例
+    // provides - 用于存储当前组件提供的依赖
+
     let provides = currentInstance.provides
     // by default an instance inherits its parent's provides object
     // but when it needs to provide values of its own, it creates its
@@ -24,6 +28,7 @@ export function provide<T, K = InjectionKey<T> | string | number>(
     const parentProvides =
       currentInstance.parent && currentInstance.parent.provides
     if (parentProvides === provides) {
+      // NICE: 如果当前组件的 provides 与父组件的 provides 一致，那么就创建一个新的 provides 对象
       provides = currentInstance.provides = Object.create(parentProvides)
     }
     // TS doesn't allow symbol as index type
