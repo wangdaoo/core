@@ -124,6 +124,8 @@ export interface TransformContext
   filters?: Set<string>
 }
 
+// NICE: 转换上下文
+// 其中包含了节点转换插件、指令转换插件等信息
 export function createTransformContext(
   root: RootNode,
   {
@@ -319,16 +321,25 @@ export function createTransformContext(
 
   return context
 }
-
+/**
+ * // NICE:
+ * transform 函数时整个转换过程的入口点，主要负责创建转换上下文并启动 AST 的遍历和转换
+ */
 export function transform(root: RootNode, options: TransformOptions) {
+  // 创建转换上下文
   const context = createTransformContext(root, options)
+  // 对 AST 进行遍历和转换
   traverseNode(root, context)
+  // 静态提升
+  // hoistStatic 选项用于配置是否需要对静态节点进行提升
   if (options.hoistStatic) {
     hoistStatic(root, context)
   }
+  // 如果不是服务端渲染，则生成根节点的代码生成节点
   if (!options.ssr) {
     createRootCodegen(root, context)
   }
+  // 收集元数据：在转换过程中，会收集一些元数据，如组件、指令、帮助函数等
   // finalize meta information
   root.helpers = new Set([...context.helpers.keys()])
   root.components = [...context.components]
@@ -344,6 +355,7 @@ export function transform(root: RootNode, options: TransformOptions) {
   }
 }
 
+// NICE: 创建根节点的代码生成节点
 function createRootCodegen(root: RootNode, context: TransformContext) {
   const { helper } = context
   const { children } = root
@@ -393,7 +405,11 @@ function createRootCodegen(root: RootNode, context: TransformContext) {
     // no children = noop. codegen will return null.
   }
 }
-
+// NICE: 遍历子节点
+/**
+ * 1. 遍历子节点：遍历父节点的所有子节点，对每个子节点应用转换插件
+ * 2. 处理节点移除：在遍历过程中，如果节点被移除，则需要更新索引
+ */
 export function traverseChildren(
   parent: ParentNode,
   context: TransformContext,
@@ -413,6 +429,13 @@ export function traverseChildren(
   }
 }
 
+// NICE: 遍历 & 转换节点
+// 处理子节点，对于 Root 和 Element 节点，递归遍历其子节点
+/**
+ * 1. 应用转换插件：对每个节点应用转换插件，并收集 exit 回调函数
+ * 2. 递归遍历：根据节点类型，递归遍历子节点
+ * 3. 执行 exit 回调：在退出节点时，执行收集到的 exit 回调函数
+ */
 export function traverseNode(
   node: RootNode | TemplateChildNode,
   context: TransformContext,
@@ -476,6 +499,7 @@ export function traverseNode(
   }
 }
 
+// NICE: 创建结构指令转换
 export function createStructuralDirectiveTransform(
   name: string | RegExp,
   fn: StructuralDirectiveTransform,
