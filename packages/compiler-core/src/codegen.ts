@@ -274,8 +274,8 @@ function createCodegenContext(
 
 /**
  * // NICE:
- * @param ast AST 树
- * @param options 选项
+ * @param ast 经过优化后的 AST 树
+ * @param options 代码生成的配置选项，包括可选的 onContextCreated 回调函数。
  */
 export function generate(
   ast: RootNode,
