@@ -272,14 +272,21 @@ function createCodegenContext(
   return context
 }
 
+/**
+ * // NICE:
+ * @param ast AST 树
+ * @param options 选项
+ */
 export function generate(
   ast: RootNode,
   options: CodegenOptions & {
     onContextCreated?: (context: CodegenContext) => void
   } = {},
 ): CodegenResult {
+  // 1. 创建代码生成上下文 context ，并在上下文创建后调用可选的回调函数 onContextCreated
   const context = createCodegenContext(ast, options)
   if (options.onContextCreated) options.onContextCreated(context)
+  // 2. 从上下文中解构出一些属性
   const {
     mode,
     push,
@@ -291,23 +298,31 @@ export function generate(
     ssr,
   } = context
 
+  // 3. 处理帮助函数和其他设置
   const helpers = Array.from(ast.helpers)
   const hasHelpers = helpers.length > 0
+  // 3.1 是否需要使用 with 语句块
   const useWithBlock = !prefixIdentifiers && mode !== 'module'
+  // 3.2 是否需要生成作用域 ID
   const genScopeId = !__BROWSER__ && scopeId != null && mode === 'module'
+  // 3.3 是否需要内联 setup()
   const isSetupInlined = !__BROWSER__ && !!options.inline
 
   // preambles
   // in setup() inline mode, the preamble is generated in a sub context
   // and returned separately.
+  // 4. 生成前导代码
+  // 4.1 如果是内联 setup() 模式，则在子上下文中生成前导代码并单独返回
   const preambleContext = isSetupInlined
     ? createCodegenContext(ast, options)
     : context
+  // 4.2 生成模块前导代码
   if (!__BROWSER__ && mode === 'module') {
     genModulePreamble(ast, preambleContext, genScopeId, isSetupInlined)
   } else {
     genFunctionPreamble(ast, preambleContext)
   }
+  // 5. 进入渲染函数
   // enter render function
   const functionName = ssr ? `ssrRender` : `render`
   const args = ssr ? ['_ctx', '_push', '_parent', '_attrs'] : ['_ctx', '_cache']
@@ -327,6 +342,7 @@ export function generate(
   }
   indent()
 
+  // 6. 如果需要，生成 with 语句块，并在其中生成帮助函数
   if (useWithBlock) {
     push(`with (_ctx) {`)
     indent()
@@ -342,6 +358,7 @@ export function generate(
   }
 
   // generate asset resolution statements
+  // 7. 生成组件、指令、过滤器等资源的声明
   if (ast.components.length) {
     genAssets(ast.components, 'component', context)
     if (ast.directives.length || ast.temps > 0) {
@@ -372,6 +389,7 @@ export function generate(
   }
 
   // generate the VNode tree expression
+  // 8. 生成 VNode 树表达式
   if (!ssr) {
     push(`return `)
   }
@@ -385,10 +403,11 @@ export function generate(
     deindent()
     push(`}`)
   }
-
+  // 9. 退出渲染函数
   deindent()
   push(`}`)
 
+  // 10. 返回包含代码、前导代码、AST 树和 source map 的对象
   return {
     ast,
     code: context.code,

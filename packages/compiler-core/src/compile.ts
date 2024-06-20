@@ -89,7 +89,13 @@ export function baseCompile(
   const resolvedOptions = extend({}, options, {
     prefixIdentifiers,
   })
+  /**
+   * // NICE:
+   * 1. 解析模板字符串为 AST
+   * 该过程是词法分析过程，为了构造基础的 AST 节点对象
+   */
   const ast = isString(source) ? baseParse(source, resolvedOptions) : source
+  // 2. AST 转换（为了添加编译优化的相关属性）
   const [nodeTransforms, directiveTransforms] =
     getBaseTransformPreset(prefixIdentifiers)
 
@@ -114,6 +120,6 @@ export function baseCompile(
       ),
     }),
   )
-
+  // 3. 生成代码
   return generate(ast, resolvedOptions)
 }

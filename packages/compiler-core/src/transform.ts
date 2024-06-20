@@ -324,6 +324,8 @@ export function createTransformContext(
 /**
  * // NICE:
  * transform 函数时整个转换过程的入口点，主要负责创建转换上下文并启动 AST 的遍历和转换
+ * @param root 根节点，模板解析生成的 AST 树的根节点
+ * @param options 转换的配置选项
  */
 export function transform(root: RootNode, options: TransformOptions) {
   // 创建转换上下文
@@ -443,7 +445,9 @@ export function traverseNode(
   context.currentNode = node
   // apply transform plugins
   const { nodeTransforms } = context
+  // 处理节点前的钩子
   const exitFns = []
+  // 应用节点转换插件
   for (let i = 0; i < nodeTransforms.length; i++) {
     const onExit = nodeTransforms[i](node, context)
     if (onExit) {
@@ -462,6 +466,7 @@ export function traverseNode(
     }
   }
 
+  // 递归遍历子节点
   switch (node.type) {
     case NodeTypes.COMMENT:
       if (!context.ssr) {
@@ -493,6 +498,7 @@ export function traverseNode(
 
   // exit transforms
   context.currentNode = node
+  // 处理节点后的钩子
   let i = exitFns.length
   while (i--) {
     exitFns[i]()
