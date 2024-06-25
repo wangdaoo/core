@@ -16,6 +16,18 @@ import { validateBrowserExpression } from '../validateExpression'
 import { hasScopeRef, isMemberExpression } from '../utils'
 import { TO_HANDLER_KEY } from '../runtimeHelpers'
 
+/**
+ * // NICE:
+ * 匹配函数表达式
+ * @param fnExpRE 函数表达式正则
+ * @returns 返回匹配结果
+ * @example
+ * fnExpRE.test('() => {}') // true
+ * fnExpRE.test('function() {}') // true
+ * fnExpRE.test('async function() {}') // true
+ * fnExpRE.test('async () => {}') // true
+ * fnExpRE.test('() => { return 1 }') // true
+ */
 const fnExpRE =
   /^\s*(async\s*)?(\([^)]*?\)|[\w$_]+)\s*(:[^=]+)?=>|^\s*(async\s+)?function(?:\s+[\w$]+)?\s*\(/
 
@@ -29,6 +41,14 @@ export interface VOnDirectiveNode extends DirectiveNode {
   exp: SimpleExpressionNode | undefined
 }
 
+/**
+ * // NICE:
+ * 根据 v-on 指令生成 props
+ * @param dir v-on 指令
+ * @param node 节点
+ * @param context 上下文
+ * @param augmentor 扩展器
+ */
 export const transformOn: DirectiveTransform = (
   dir,
   node,
