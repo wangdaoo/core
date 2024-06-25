@@ -27,6 +27,10 @@ import {
   OPEN_BLOCK,
 } from '../runtimeHelpers'
 
+/**
+ * // NICE: 静态提升的入口函数，负责初始化并调用递归遍历函数 walk
+ * 1. 首先调用 isSingleElementRoot 判断根节点是否是单个元素节点，是泽传递 true，否则传递 false
+ */
 export function hoistStatic(root: RootNode, context: TransformContext) {
   walk(
     root,
@@ -37,6 +41,14 @@ export function hoistStatic(root: RootNode, context: TransformContext) {
   )
 }
 
+/**
+ * 判断根节点是否是单个元素节点
+ * @param root 根节点
+ * @param child 子节点
+ * @returns
+ * 1. 如果根节点的子节点长度为 1，且子节点是普通元素节点、组件节点、模板节点，则返回 true
+ * 2. 否则返回 false
+ */
 export function isSingleElementRoot(
   root: RootNode,
   child: TemplateChildNode,
@@ -49,6 +61,9 @@ export function isSingleElementRoot(
   )
 }
 
+/**
+ * 递归遍历 AST 节点，对节点进行静态提升
+ */
 function walk(
   node: ParentNode,
   context: TransformContext,
@@ -58,6 +73,7 @@ function walk(
   const originalCount = children.length
   let hoistedCount = 0
 
+  // 1. 遍历 node 的子节点
   for (let i = 0; i < children.length; i++) {
     const child = children[i]
     // only plain elements & text calls are eligible for hoisting.
@@ -65,6 +81,7 @@ function walk(
       child.type === NodeTypes.ELEMENT &&
       child.tagType === ElementTypes.ELEMENT
     ) {
+      // 2. 如果是普通元素节点，则调用 getConstantType 判断节点是否是静态节点
       const constantType = doNotHoistNode
         ? ConstantTypes.NOT_CONSTANT
         : getConstantType(child, context)
@@ -153,6 +170,14 @@ function walk(
   }
 }
 
+/**
+ * 判断节点的常量类型
+ * @param node 节点
+ * @param context 上下文
+ * @returns
+ * 根据节点的类型，返回节点的常量类型。它使用一个缓存对象 constantCache，用于缓存节点的常量类型
+ * 并根据不同类型的节点进行判断和递归
+ */
 export function getConstantType(
   node: TemplateChildNode | SimpleExpressionNode,
   context: TransformContext,
@@ -320,6 +345,13 @@ function getConstantTypeOfHelperCall(
   return ConstantTypes.NOT_CONSTANT
 }
 
+/**
+ * 判断节点的 props 是否是静态节点
+ * @param node 节点
+ * @param context 上下文
+ * @returns
+ * 根据节点的 props，返回节点的常量类型
+ */
 function getGeneratedPropsConstantType(
   node: PlainElementNode,
   context: TransformContext,
@@ -359,6 +391,11 @@ function getGeneratedPropsConstantType(
   return returnType
 }
 
+/**
+ * 获取节点的 props
+ * @param node 节点
+ * @returns
+ */
 function getNodeProps(node: PlainElementNode) {
   const codegenNode = node.codegenNode!
   if (codegenNode.type === NodeTypes.VNODE_CALL) {
@@ -366,6 +403,11 @@ function getNodeProps(node: PlainElementNode) {
   }
 }
 
+/**
+ * 获取节点的 patchFlag
+ * @param node 节点
+ * @returns
+ */
 function getPatchFlag(node: VNodeCall): number | undefined {
   const flag = node.patchFlag
   return flag ? parseInt(flag, 10) : undefined
