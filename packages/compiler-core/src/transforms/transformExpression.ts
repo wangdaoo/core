@@ -46,6 +46,12 @@ import { BindingTypes } from '../options'
 
 const isLiteralWhitelisted = /*#__PURE__*/ makeMap('true,false,null,this')
 
+/**
+ * // NICE:
+ * 节点转换函数，用于处理插值表达式和元素上的指令表达式
+ * @param node 节点
+ * @param context 上下文
+ */
 export const transformExpression: NodeTransform = (node, context) => {
   if (node.type === NodeTypes.INTERPOLATION) {
     node.content = processExpression(
@@ -93,6 +99,10 @@ interface PrefixMeta {
 // Important: since this function uses Node.js only dependencies, it should
 // always be used with a leading !__BROWSER__ check so that it can be
 // tree-shaken from the browser build.
+/**
+ * // NICE:
+ * 实际处理和优化表达式的函数
+ */
 export function processExpression(
   node: SimpleExpressionNode,
   context: TransformContext,
