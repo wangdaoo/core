@@ -1026,6 +1026,12 @@ function reset() {
   stack.length = 0
 }
 
+/**
+ * // NICE:
+ * @description: 解析模板字符串，生成 AST
+ * @param {string} input: 模板字符串
+ * @param {ParserOptions} options: 解析选项
+ */
 export function baseParse(input: string, options?: ParserOptions): RootNode {
   reset()
   // 将传入的模板字符串赋值给currentInput

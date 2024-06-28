@@ -106,6 +106,9 @@ export function baseCompile(
     }
   }
 
+  /**
+   * 将模板 AST 转换为渲染 AST
+   */
   transform(
     ast,
     extend({}, resolvedOptions, {
@@ -120,6 +123,6 @@ export function baseCompile(
       ),
     }),
   )
-  // 3. 生成代码
+  // 3. 将渲染 AST 转换为渲染函数，以字符串形式返回
   return generate(ast, resolvedOptions)
 }
